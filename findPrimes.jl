@@ -65,6 +65,17 @@ end
 function findmultiplePrimeFactors(n,primes=primes,debug=0)
   findFactorsIn(n,primes,0,1,false,debug)
 end
+function makeDivisorswithMultiplicity(n, primes=primes, debug=0)
+  if isnothing(primes) && primes==[] primes=[2,3] end
+  while primes[length(primes)]<n AppendNPrimes!(3,primes) end
+  primedivs=findmultiplePrimeFactors(n, primes, debug)
+  divisorswithMultiplicity = [1]
+  for p in primedivs
+    divisorswithMultiplicity = append!(divisorswithMultiplicity, divisorswithMultiplicity.*p)
+  end
+  return (divisorswithMultiplicity)
+end
+
 ## unittests
 @assert(findDistinctDivisors((28),3)==[2,4,7,14])
 primes=BigInt[2,3]
@@ -113,18 +124,44 @@ function isPerfect(n, debug=3)
   end
   return sign(a-n)
 end
+function isFatPerfect(n, debug=0)
+  a= sum(makeDivisorswithMultiplicity(n))-n
+  if isodd(debug) print(n," ") end
+  if  debug >= 2
+    if a==n  print("perfect ")
+    elseif a<n  print("thin ")
+    elseif a>n print("fat ")
+    end
+  end
+  return sign(a-n)
+end
+## test perfection
 
 isPerfect(28,2)
 isPerfect(29,2)
 @time(begin n=100; print("Perfect numbers until ",n,": ");for i in 1:n isPerfect(i,2) end end)
+primes=[2,3]
+AppendNPrimes!(100,primes)
+makeDivisorswithMultiplicity(28)==[1,2,2,4,7,14,14,28]
+for i in 2:10
+  list= makeDivisorswithMultiplicity(i)
+  println(length(list)," divisors of ",i,": ", list )
+end
+@time(begin n=100; print("Perfect numbers until ",n,": ");for i in 1:n isFatPerfect(i,2) end end)
+
+@time(begin n=100; print("Perfect numbers until ",n,": ");[ isFatPerfect(i,2) for i in 1:n] end)
+
+
 ##length(primes)
-using Plots; gr()
+
 list= begin n=10000; [isPerfect(i,0) for i in 1:n] end
+list= begin n=10000; [isFatPerfect(i,0) for i in 1:n] end
 count( x-> x>0, list)
 count(x-> x<0, list)
 count(x-> x==0, list)
+using Plots; gr()
 histogram(list,nbins=3)
-pie(count( x-> x>0, list),
+pie(count( x-> x>0, list),)
 count(x-> x<0, list),
 count(x-> x==0, list))
 function histmod(primes,n)
@@ -135,3 +172,4 @@ for n=1:div(length(primes),100)
   sleep(4)
 end
 histmod(primes,primes[16])
+plot(map(x->x^2-10x, -10:18))

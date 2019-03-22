@@ -112,9 +112,11 @@ print(primes[1:50]')
 print(primes')
 
 ##
-
+function sumDivisors(n,debug=0)
+  return 1+sum(findDistinctDivisors(n))
+end
 function isPerfect(n, debug=3)
-  a= 1+sum(findDistinctDivisors(n))
+  a= sumDivisors(n,debug)
   if isodd(debug) print(n," ") end
   if  debug >= 2
     if a==n  print("perfect ")
@@ -124,8 +126,11 @@ function isPerfect(n, debug=3)
   end
   return sign(a-n)
 end
+function sumDivisorsMultiply(n,debug=0)
+  return sum(makeDivisorswithMultiplicity(n))-n
+end
 function isFatPerfect(n, debug=0)
-  a= sum(makeDivisorswithMultiplicity(n))-n
+  a= sumDivisorsMultiply(n,debug)
   if isodd(debug) print(n," ") end
   if  debug >= 2
     if a==n  print("perfect ")
@@ -134,6 +139,11 @@ function isFatPerfect(n, debug=0)
     end
   end
   return sign(a-n)
+end
+function amico(n,cyclelength=2, debug=0)
+  a=n
+  for k = 1:cyclelength a=sumDivisors(a,debug) end
+  return n==sumDivisors(a) ? a : 0
 end
 ## test perfection
 
@@ -149,10 +159,17 @@ for i in 2:10
 end
 @time(begin n=100; print("Perfect numbers until ",n,": ");for i in 1:n isFatPerfect(i,2) end end)
 
-@time(begin n=100; print("Perfect numbers until ",n,": ");[ isFatPerfect(i,2) for i in 1:n] end)
+@time(begin n=100; print("Fat Perfect numbers until ",n,": ");[ isFatPerfect(i,2) for i in 1:n] end)
+@time(  for i in 1:1001 if isFatPerfect(i)==0 println(i, " is Fat perfect")end end)
+# until 100001 was 145.212405 seconds (35.06 M allocations: 114.396 GiB, 11.57% gc time)
+# only 6 is fatperfect below 100001
+@time(  for n in 1:1001 a=amico(n);if a!==0  println(n, " has as friend ", a)end end)
+@time(  for n in 1:10001 a=amico(n,3);if a!==0  println(n, " has as 2nd friend ", a)end end)
+@time(  for n in 1:1001 a=amico(n,4);if a!==0  println(n, " has as 3nd friend ", a)end end)
 
 
-##length(primes)
+## plot some prime things
+length(primes)
 
 list= begin n=10000; [isPerfect(i,0) for i in 1:n] end
 list= begin n=10000; [isFatPerfect(i,0) for i in 1:n] end

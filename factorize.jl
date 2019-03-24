@@ -1,3 +1,9 @@
+##pieces not used any more.
+function AppendNPrimes!(primes=primes,nr=1,method=1)
+    for i=1:nr push!(primes, findNextPrime(primes),method) end
+  return primes
+end
+
 function findFactor(n=3,primes=[2,3],nr=0,extend=true, startindex=1,debug=0)
     factors=BigInt[]
     if n==1 || startindex>length(primes)|| startindex<1 return factors end
@@ -30,9 +36,12 @@ end
 
 # if you are sure primes contains all relevant primes, specify it.
 # if afraid you might miss a factor, dont specify, and loop over all integers
-function isPrime(n=510511,primes=[])
+function isPrime(n=510511,primes=primes)
     isprime=true
-    if length(primes)==0 primes=2:floor(BigInt,sqrt(n)) end
+    if !@isdefined(primes) primes=[2,3] end
+    min=floor(BigInt,sqrt(n))
+    reached=primes[length(primes)]
+    while reached<min reached=addPrime!(primes, 1,2) end
     for k in primes
         if n%k==0
             isprime=false
@@ -55,6 +64,8 @@ function addPrime!(primes=[2,3],n=1,method=2)
     return potPrime
 end
 primes=[2,3]
+## unit tests
+
 findFactor(7,primes,0,true)
 @time(addPrime!(primes,2))
 @time(begin primes=[2,3]
@@ -83,7 +94,7 @@ primes=[2,3]
 
 isPerfect(6)
 isPerfect(5)
-for i=1:1000 isPerfect(i) ? print(i, " perfect, ") : print(" ") end
+for i=1:1000 isPerfect(i) ? print(i, " perfect, ") : 0 end
 print(primes')
 isPerfect(10)
 primes'

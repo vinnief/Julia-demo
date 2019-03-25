@@ -1,20 +1,24 @@
 ## prime number generation
 ##
 if !@isdefined(primes) || primes==[] primes=[2,3] end
-if !@isdefined(Divisors) Divisors = Dict{Integer,Array{Integer}}() end #(4 => [2])
-if !@isdefined(DivisorsMult) DivisorsMult = Dict{Integer,Array{Integer}}() end #(12 =>[1,2,2,3,4,6,6,12]) or (12 => [2,2,3,4,6,6])
-if !@isdefined(PrimeDistinctDivisors) PrimeDistinctDivisors=Dict{Integer,Array{Integer}}()end #(4 => [2])
-if !@isdefined(PrimeDivisors) PrimeDivisors= Dict{Integer,Array{Integer}}() end #(4 => [2,2])
-function findFactor(n=4,primes=primes,nr=0,extendPrimes=true, startindex=1,debug=0)
+if !@isdefined(Divisors) end #(4 => [2])
+   Divisors = Dict{Integer,Array{Integer}}()
+if !@isdefined(DivisorsMult)  end #(12 =>[1,2,2,3,4,6,6,12]) or (12 => [2,2,3,4,6,6])
+  DivisorsMult = Dict{Integer,Array{Integer}}()
+if !@isdefined(PrimeDistinctDivisors) end #(4 => [2])
+  PrimeDistinctDivisors=Dict{Integer,Array{Integer}}()
+if !@isdefined(PrimeDivisors) end #(4 => [2,2])
+   PrimeDivisors= Dict{Integer,Array{Integer}}()
+function findFactor(n=4,nr=0,startindex=1,primes=primes,extendPrimes=true, debug=0)
     factors=BigInt[]
     if n==1 || startindex>length(primes)|| startindex<1 || !(typeof(n)<:Integer)return factors end
-    if debug>1 print(" factoring ",n,": ") end
+    if debug>=1 print(" factoring ",n,": ") end
     for p in primes[startindex:end]
         if n>=p && n%p==0
             push!(factors,p)
             if n!=p && nr!=1
                 append!(factors,
-                  findFactor(div(n,p),primes,nr-1,true,indexin(p,primes)[1]))
+                  findFactor(div(n,p),nr-1,indexin(p,primes)[1]))
             end
             return factors
         end
@@ -26,7 +30,7 @@ function findFactor(n=4,primes=primes,nr=0,extendPrimes=true, startindex=1,debug
                push!(factors,p)
                if n!=p && nr!=1
                    append!(factors,
-                      findFactor(div(n,p),primes,nr-1,true, indexin(p,primes)[1]))
+                      findFactor(div(n,p),nr-1,indexin(p,primes)[1]))
                end
                return factors
             end
@@ -34,44 +38,47 @@ function findFactor(n=4,primes=primes,nr=0,extendPrimes=true, startindex=1,debug
     end
     return factors
 end
+
 function findAFactor(n=60,primes=primes,debug=0)
   return findFactorsIn(n,1,1,false,primes,true,debug-1)
 end
 function findFactorsIn(n=60,nr=0,startindex=1, compositeFactors=false,potFactors=primes, extendPrimes=true,debug=0)
   factors = BigInt[]
   if n==1 || startindex>length(primes)|| startindex<1 return factors end
-  if debug>=0 print(n," is being factored, ") end
+  if debug>=1 print(n," is being factored, ") end
   if debug>=4 && nr>0 print(" into ",nr," factors at most, ") end
-  if compositeFactors potFactors=2:floor(BigInt,n/2) end
-  if debug>=3 print(" Checking ", primes[startindex:end]'', " to begin with. ") end
+  #if compositeFactors potFactors=collect(2:floor(BigInt,n/2)) end  #no need for this we can use it to find primes
+  if debug>=3 print(" Checking ", primes[startindex:end]', " to begin with. ") end
   for p in potFactors[startindex:end]
     if p<=n && n%p==0
       if debug>=2 print(p, " is a divisor. ") end
       push!(factors,p)
       if nr==1 || n==p return factors end
       if !compositeFactors
-            append!(factors,findFactorsIn(div(n,p), nr-1,indexin(p,potFactors)[1],compositeFactors,potFactors,extendPrimes,debug-1))
-      return factors
+        append!(factors,findFactorsIn(div(n,p), nr-1,indexin(p,potFactors)[1],compositeFactors,potFactors,extendPrimes,debug-1))
+        return factors
       end
     end
-  end  # if we reach this there was no prime divisor in potFactors,
-  #this means we have primes in potFactors, and compositeFactors=false,
+  end  # if we reach this there was no prime divisor in potFactors, or compositeFactors=true
+  #this means we have primes in potFactors,
   #and if extendprimes is true we need to get all needed primes to find more divisors.
-  if extendPrimes && !compositeFactors
+  if extendPrimes
     startindex=length(potFactors)
-    if potFactors[startindex]> floor(BigInt, sqrt(n))  return (push!(factors,n));  end
-    if debug>0 print(" Extending primes from highest known prime ", potFactors[startindex], " to at least ", n,". ") end
-    addPrimesUntil!(n,1,debug-1,potFactors)
+    min=ceil(BigInt, sqrt(n))
+    if potFactors[startindex]> min  return factors end #(push!(factors,n));  end
+    if debug>0 print(" Extending with primes from highest known prime ", potFactors[startindex], " to at least ", min,". ") end
+    addPrimesUntil!(min,1,debug-1,potFactors)
     append!(factors,findFactorsIn(n, nr,startindex,compositeFactors,potFactors,extendPrimes,debug-1))
   end
   return factors
 end
 
 function findNextPrime(primes=primes, method=1,debug=0, potPrime=primes[length(primes)]+2)
+  if !isnothing(indexin(1,primes)[1]) throw("1 should not be in the potential divisor list") end
   if (method==1)
       while !isPrime(potPrime,method, debug-1, primes) potPrime+=2 end
   elseif method==2
-        while length(findFactor(potPrime,primes,1,false,1,debug-1))>0 potPrime+=2 end #n,primes,nr=0,extendPrimes=true, startindex=1,debug=0
+        while length(findFactor(potPrime,1,1,primes,false,debug-1))>0 potPrime+=2 end #defaults: (n=4,nr=0,startindex=1,primes=primes,extendPrimes=true, debug=0)
   elseif method==3
       while findAFactor(potPrime,primes,debug-1)[1]!=potPrime potPrime+=2 end
   else
@@ -98,12 +105,17 @@ function addPrimesUntil!(n=4,method=1, debug=0,primes=primes)
   end
   return prime
 end
-
+function isPrime(n=35,method=1,debug=0,primes=primes)
+  if method==1 return isPrimeDirect(n,method,debug,primes)
+  elseif method==2 return findFactor(n,1,1,primes,true,debug)##(n=4,nr=0,startindex=1,primes=primes,extendPrimes=true, debug=0)
+  elseif method==3 return findAFactor(n,primes,debug)==[n]
+  else throw(" method $method not Known, use 1,  2 or 3")
+  end
+end
 # if you are sure primes contains all relevant primes, specify it.
-# if afraid you might miss a factor, dont specify, and loop over all integers
-function isPrime(n=510511,method=1, debug=0, primes=primes)
+# if afraid you might miss a factor, specify collect(2:floor(BigInt,n)), and loop over all integers
+function isPrimeDirect(n=510511,method=1, debug=0, primes=primes)
     isprime=true
-    addPrimesUntil!(floor(BigInt,sqrt(n)),method,debug-1, primes)
     for p in primes
       if n<=p break end
       if n%p==0
@@ -111,47 +123,27 @@ function isPrime(n=510511,method=1, debug=0, primes=primes)
             break
       end
     end
+    if isprime
+      lastp1=(primes[length(primes)]+1)
+      if n<= lastp1*lastp1 return true
+      else
+        addPrimesUntil!(floor(BigInt,sqrt(n)),method,debug-1, primes)
+        isprime=isPrimeDirect(n,method,debug,primes)
+      end
+    end
     return isprime
 end
 # thie is the end of the prime searching. now for the decompositions:
 
-function findDistinctDivisors(n,debug=0)
+function findDistinctDivisors!(n,debug=0)
   res=get(Divisors,n,[])
-  if res==[]  Divisors[n] = res = findFactorsIn(n,0,1,true,1:n,false, debug-1) end
+  if res==[]  Divisors[n] = res = findFactorsIn(n,0,1,true,collect(2:n),false, debug-1) end
   return res
 end
 
-function findPrimeDecomposition!(n=12,primes=primes,nr=0,start=1,debug=0)
-  if !@isdefined(PrimeDivisors) global PrimeDivisors= Dict{Integer,Array{Integer}}()end #(4 => [2,2]) end
-  factors= get(PrimeDivisors,n,BigInt[] )
-  if n==1 || factors!=[] return factors end
-  if !(typeof(n) <:Integer) return factors end
-  for p in primes[start:end]
-    if n>=p && n%p==0
-      push!(factors,p)
-      if nr!=1 && n!=p
-        if debug>0 println("factorizing $n finding $nr factors ") end
-        append!(factors,findPrimeDecomposition!(div(n,p), primes, nr-1,indexin(p,primes)[1],debug-1))
-      end
-      break
-    end
-  end
-  if length(factors)==0 || (factors==[1]&&n!=1)
-     startIndex= primes[length(primes)]+1
-     if startIndex<= n
-       AddPrime!(10,1,primes,debug-1)
-       append!(factors,findPrimeDecomposition!(n,primes,nr,startIndex), debug-1)
-     else println("Error: No factors of ",n," found, largest factor checked is ",primes[length(primes)])
-       return factors
-     end
-  end
-  PrimeDivisors[n] = factors
-  return factors
-end
-
-
-function findDistinctPrimeFactors(n,primes=primes,debug=0)
-  if !@isdefined(PrimeDistinctDivisors) global PrimeDistinctDivisors= Dict{Integer,Array{Integer}}(4 => [2]) end
+# this function is wrong, when there is need to expand the primes.
+function findDistinctPrimeDivisors!(n,primes=primes,debug=0)
+  if !@isdefined(PrimeDistinctDivisors) global PrimeDistinctDivisors= Dict{Integer,Array{Integer}}() end #(4 => [2]) end
   factors= get(PrimeDivisors,n,BigInt[] )
   if factors!=[] return factors
   else
@@ -159,19 +151,49 @@ function findDistinctPrimeFactors(n,primes=primes,debug=0)
   end
 end
 
-function findMultiplePrimeFactors(n,primes=primes,debug=0)
+# next function is not needed any more?
+function findPrimeDecomposition!(n=12,nr=0,start=1,primes=primes,debug=0)
+  if !@isdefined(PrimeDivisors) global PrimeDivisors= Dict{Integer,Array{Integer}}()end #(4 => [2,2]) end
+  factors= get(PrimeDivisors,n,BigInt[] )
+  if n==1 || factors!=[] return factors end
+  if !(typeof(n) <:Integer) return factors end
+  println( " starting the loop in findprimedecomposition")
+  for p in primes[start:end]
+    if n>=p && n%p==0
+      push!(factors,p)
+      if nr!=1 && n!=p
+        if debug>0 println("factorizing $n finding $nr factors ") end
+        append!(factors,findPrimeDecomposition!(div(n,p), nr-1,indexin(p,primes)[1], primes,debug-1))
+      end
+      break
+    end
+  end
+  if length(factors)==0 || (factors==[1]&&n!=1)
+     endIndex= length(primes)
+     if (primes[endIndex]+2)*(primes[endIndex]+2)<= n#
+       AddPrime!(10,1,primes,debug-1)
+       append!(factors,findPrimeDecomposition!(n,nr,endIndex+1,primes, debug-1))
+     else push!(factors,n)  #throw("Error: No factors of $n found, largest factor checked is ",primes[length(primes)])
+       return factors
+     end
+  end
+  PrimeDivisors[n] = factors
+  return factors
+end
+#next function is simply find prime decomposition using findFactorsIn
+function findMultiplePrimeDivisors!(n,primes=primes,debug=0)
   if !@isdefined(PrimeDivisors) global PrimeDivisors= Dict{Integer,Array{Integer}}() end # (4 => [2,2]) end
   factors= get(PrimeDivisors,n,BigInt[] )
   if factors!=[] return factors end
   PrimeDivisors[n]=findFactorsIn(n,0,1,false,primes,true,debug-1)
 end
 
-function makeDivisorswithMultiplicity(n, primes=primes, debug=0)
+function findDivisorswithMultiplicity!(n, primes=primes, debug=0)
   if !@isdefined(DivisorsMult) Divisors = Dict{Integer,Array{Integer}}() end
   result = get(DivisorsMult,n,[])
   if result!=[] return result end
-  while primes[length(primes)]<n AddPrime!(2) end
-  primedivs=findmultiplePrimeFactors(n, primes, debug-1)
+  while primes[length(primes)]^2<n AddPrime!(2) end
+  primedivs=findmultiplePrimeDivisors!(n, primes, debug-1)
   divisorswithMultiplicity = [1]
   for p in primedivs
     divisorswithMultiplicity = append!(divisorswithMultiplicity, divisorswithMultiplicity.*p)
@@ -239,17 +261,22 @@ end
 
 # it seems isPrime is the best way of just searching for primes.
 primes=BigInt[2,3]
-@assert findFactorsIn(28,0,1, false,primes,false,3) ==[2,2] #7 not in primes yet
-@assert findMultiplePrimeFactors(28)==[2,2,7] #
-@assert findDistinctPrimeFactors(28)==[2,2,7] # this function adds new primes
+@assert findFactorsIn(28,0,1, false,primes,false,0) ==[2,2]
+@assert findFactorsIn(28,0,1, true,primes,false,0)==[2]
+@assert findFactorsIn(28,0,1, false,primes,true,0)==[2,2,7] #does not extend primes, but does recognize "small" primes.
+@assert primes==[2,3]
+@assert findFactorsIn(28,0,1, true,primes,true,0) == [2,7]
+@assert findAFactor(28,primes)== [2] #7 not in primes yet
+@assert findMultiplePrimeDivisors!(28)==[2,2,7] #
+@assert findDistinctPrimeDivisors!(28)==[2,7] #returns [2,2,7]
+findDistinctPrimeDivisors!(2*2*3*11)# [2,3,11,11] wrong,
+ # not meant to find 7 new primes, but finds some small prime anyway.
 primes'
 @assert findPrimeDecomposition!(28)==[2,2,7] # this function adds new primes
 primes'
-@assert findFactorsIn(28,0,1, true,primes,false,3)==[2,4,7,14] #ignores the primes argument
-@assert findFactorsIn(28,0,1, false,primes,true,3)==[2,2,7]
-@assert findAFactor(28,primes)== [2]
+
 biggie=30*1001*17
-@assert( findDistinctDivisors(28,3) ==[2,4,7,14])
+@assert( findDistinctDivisors!(28,3) ==[2,4,7,14,28])
 @assert
 findDistinctPrimeFactors(2*2*3*7*7)
 ==[2,3,5,7]#
@@ -261,11 +288,10 @@ findDistinctPrimeFactors(2*2*3*7*7)
 ## now do some timing
 @time( for n=4:20 println(findFactor(n)) end)
 @time( for n=4:20 println(findFactorsIn(n)) end)
-@time( for n=4:20 println(findFactorsIn(n,primes,0,1,true,)) end) # finds each factor exactly once!
+@time( for n=4:20 println(findFactorsIn(n,0,1,true,primes)) end) # finds each factor exactly once!
 @time( for n=4:20 println(findPrimeDecomposition!(n)) end)
 
 @time(begin primes=[2,3];addPrime!(50,3);primes' end)
-
 
 @time(findPrimeFactors!(biggie,primes,0))
 @time(findDistinctPrimeFactors(biggie+1,primes))
@@ -273,9 +299,9 @@ findDistinctPrimeFactors(2*2*3*7*7)
 @time(findDistinctDivisors(biggie+1))
 print(findPrimeFactors!(biggie+1,primes))
 print(primes')
-@time(findPrimeFactors!(biggie,primes,0))
-@time(findFactorsIn(biggie,2:biggie,0))
-@time(findFactorsIn(biggie+1,2:biggie,0))
+@time(findPrimeDivisors!(biggie,0,1,false,primes,true,0))
+@time(findFactorsIn(biggie,0,1,true,collect(2:biggie),false,0)) #note: use collect(2:biggie)
+@time(findFactorsIn(biggie+1,0,1,true,collect(2:biggie),false,0))
 @time(AddPrime!(24))
 @time(AddPrime!(25))
 @time(AddPrime!(25))

@@ -10,7 +10,7 @@ function findFactor(n=3,primes=[2,3],nr=0,extend=true, startindex=1,debug=0)
                   findFactor(div(n,p),primes,nr-1,true,indexin(p,primes)[1]))
             end
             return factors
-        end
+        end elseif n<p*p break
     end
     if extend &&(typeof(n)<:Integer)
         while length(factors)==0
@@ -54,7 +54,22 @@ function addPrime!(primes=[2,3],n=1,method=2)
     end
     return potPrime
 end
+function addPrime2!(n=42*43;method=0,primes=primes)
+    potPrime=primes[end]+2
+    for i=potPrime:2:n
+        for p in primes[2,end]
+            if i<p*p push!(primes,i);break
+            elseif i%p==0 break end
+        end
+    end
+    return primes
+end
+collect(5:2:43)
+
+
 primes=[2,3]
+addPrime2!(41*43)
+primes'
 findFactor(7,primes,0,true)
 @time(addPrime!(primes,2))
 @time(begin primes=[2,3]

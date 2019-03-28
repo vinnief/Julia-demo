@@ -10,7 +10,7 @@ function findFactor(n=3,primes=[2,3],nr=0,extend=true, startindex=1,debug=0)
                   findFactor(div(n,p),primes,nr-1,true,indexin(p,primes)[1]))
             end
             return factors
-         elseif n<p*p && factors==[] push!(factors,n) break end
+        elseif n<p*p && factors==[] push!(factors,n) ;break end
     end
     if extend &&(typeof(n)<:Integer)
         while length(factors)==0
@@ -54,32 +54,35 @@ function addPrime!(primes=[2,3],n=1,method=2)
     end
     return potPrime
 end
-function addPrime2!(n=42*43;method=0,primes=primes,debug=0)
+
+function addPrimesUntil!(n=42*43;method=0,primes=primes,debug=0)
     start=primes[end]+2
     for i=start:2:n
-        if debug>0 print("n=$n ") end
-        if debug>4 print("primes: $primes") end
-        for p in primes[2,end]
-            if debug>3 print("p=$p ") end
-            if i<p*p
+        for p in primes[2:end]
+            if i < p*p
                 push!(primes,i)
                 break
             elseif i%p==0
                 break
-            end
-            if debug>1 print("primes: $primes") end
+            else  print(debug>1 ? " $p^2<$n" : "") ;continue end
         end
-        if debug>1 print("primes: $primes") end
-        if debug>0 println() end
     end
-    return primes
+    return primes'
 end
-collect(5:2:43*41)
+primes=[2,3]
+addPrimesUntil!(43*41,debug=0)
+primes'
+for i=3:2:13
+    print("we loop over i=$i:")
+  for p = 2:(i^3)
+      if p*p>i   break end
+      print("$p,")
+  end
+  println(". ")
+end
 
 ##
-primes=[2,3]
-addPrime2!(41*43*47)
-primes'
+collect(5:2:43)'
 findFactor(7,primes,0,true)
 @time(addPrime!(primes,2))
 @time(begin primes=[2,3]

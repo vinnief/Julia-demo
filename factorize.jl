@@ -54,13 +54,23 @@ function addPrime!(primes=[2,3],n=1,method=2)
     end
     return potPrime
 end
-function addPrime2!(n=42*43;method=0,primes=primes)
+function addPrime2!(n=42*43;method=0,primes=primes,debug=0)
     start=primes[end]+2
     for i=start:2:n
+        if debug>0 print("n=$n ") end
+        if debug>4 print("primes: $primes") end
         for p in primes[2,end]
-            if i<p*p push!(primes,i);break
-            elseif i%p==0 break end
+            if debug>3 print("p=$p ") end
+            if i<p*p
+                push!(primes,i)
+                break
+            elseif i%p==0
+                break
+            end
+            if debug>1 print("primes: $primes") end
         end
+        if debug>1 print("primes: $primes") end
+        if debug>0 println() end
     end
     return primes
 end

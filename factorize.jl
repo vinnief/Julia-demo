@@ -64,14 +64,22 @@ function addPrimesUntil!(n=42*43;method=0,primes=primes,debug=0)
                 break
             elseif i%p==0
                 break
-            else  print(debug>1 ? " $p^2<$n" : "") ;continue end
+            #else  print(debug>1 ? " $p^2<$n" : "") ;continue
+            end
         end
     end
     return primes'
 end
-primes=[2,3]
-addPrimesUntil!(43*41,debug=0)
+primes1=[2,3]
+addPrimesUntil!(200,primes=primes1)
+diff(primes1)'
+@time addPrimesUntil!(43*41*42,debug=0)
 primes'
+using JLD
+save("primes.jld", "primesuntil74037", primes)
+datadict=load("primes.jld")
+datadict["primesuntil74037"]==primes
+datadict=[]
 for i=3:2:13
     print("we loop over i=$i:")
   for p = 2:(i^3)

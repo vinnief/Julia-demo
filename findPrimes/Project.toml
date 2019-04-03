@@ -1,0 +1,4 @@
+name = "findPrimes"
+uuid = "663291fe-5589-11e9-3852-37f861a59017"
+authors = ["Vincent Feltkamp <vincent.feltkamp@gmail.com>"]
+version = "0.1.0"

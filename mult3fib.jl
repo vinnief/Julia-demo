@@ -46,6 +46,7 @@ end
 using Plots; gr()
 histogram(randn(10000), nbins=100)
 
+repeat([12,3],inner=3,outer=2)
 function areaofcircle()
             print("What's the radius?")
             r = parse(Float64, readline(stdin))

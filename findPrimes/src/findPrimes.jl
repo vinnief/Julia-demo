@@ -1,5 +1,5 @@
 ## prime number generation and factorization
-#module findPrimes
+module findPrimes
 #export isPrime, isPerfect,isVeryPerfect, PrimeDivisors, Divisors!,amico,
 #      nextfriend, countClingy,primes
 function init(;force=false)
@@ -196,7 +196,7 @@ function multiPerfect(n; debug=0)
   if !@isdefined(RelDivSum) global RelDivSum = Dict{Integer,Float64} end
   if !@isdefined(RelDivSumInt) global RelDivSumInt = Dict{Integer,Integer} end
   res = get(RelDivSum,n,0.0)
-  if res==0.0 RelDivSum[n]= (sumDivisors(n))/n end
+  if res==0 RelDivSum[n]= (sumDivisors(n))/n end
   resInt=get(RelDivSumInt,n,0)
   if resInt==zero(resInt) && sum%n==zero(n) RelDivSumInt[n]=sumDivisors(n) end
   return sumDivisors(n,debug=debug-1)%n==0
@@ -223,25 +223,25 @@ end
 
 nextFriend(n::Integer; debug=0)= sumDivisors(n)-n
 
-function countClingy(n::Integer; upperlevel= 1000 , maxCount=1000,debug=1)
+function countClingy(n::Integer; upperlevel= 100 , maxCount=1000,debug=1)
   if !@isdefined(clingCycle) global clingCycle=Dict{Integer,Array{Integer}}() end
-  a=n;conte=0;res=[]#get(clingCycle,n,[])
-  while conte<maxCount && isnothing(indexin(a,res)[1])
-     conte+=1;  push!(res,a)
+  conte=0
+  res=[]
+  a=n
+  while  a!=0 && a< n*upperlevel && conte<maxCount && isnothing(indexin(a,res)[1])
+     conte+=1
+     push!(res,a)
      if debug>4 print("$a ")end
      a=nextFriend(a)
    end
    push!(res,a)
-   if !isnothing(indexin(a,res)[1])
-     steps=indexin(a,res)[1]
-     if debug>0 println("$n ends in a cycle in ",steps," steps which is ", 1+length(res)-steps ," long. Cycle is:", res[steps:end]) end
-   elseif conte==maxCount steps=maxCount
-   #elseif a==0 steps=length(res)
+   if debug>0 && !isnothing(indexin(a,res)[1])
+     println("$n cycles between ",indexin(a,res)[1]," and ", length(res), res[indexin(a,res)[1]:end])
    end
    if debug>4 println() end
-   clingCycle[n]=res
-   #if debug>2 println("$n ",length(res), " ", res[max(1,end-4):end]) end
-  return conte,steps,length(res),res
+   if indexin(a,res)!=[nothing] clingCycle[n]=res end
+   if debug>2 println("$n ",length(res), " ", res[max(1,end-4):end]) end
+  return conte
 end
 
 function amico(n;cyclelength=2, debug=0)
@@ -249,10 +249,9 @@ function amico(n;cyclelength=2, debug=0)
   for k = 2:cyclelength a=sumDivisors(a,debug=debug-1)-a end
   return n==sumDivisors(a,debug=debug-1)-a ? a : 0
 end
-
 function moltoamico(n;cyclelength=2,debug=0)
   a=n
   for k=2:cyclelength a=sumDivisorsMultiply(a,debug=debug-1)-a end
   return n==sumDivisorsMultiply(a,debug=debug-1)-n ? a : 0
 end
-#end # module findPrimes.jl
+end # module findPrimes.jl

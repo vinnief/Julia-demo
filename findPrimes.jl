@@ -221,7 +221,7 @@ function isVeryPerfect(n; debug=0)
   return a==n+n
 end
 
-nextFriend(n::Integer; debug=0)= sumDivisors(n)-n
+nextFriend(n::Integer; debug=0)= n<=1 ? n : sumDivisors(n)-n
 
 function countClingy(n::Integer; upperlevel= 1000 , maxCount=1000,debug=1)
   if !@isdefined(clingCycle) global clingCycle=Dict{Integer,Array{Integer}}() end
@@ -232,16 +232,16 @@ function countClingy(n::Integer; upperlevel= 1000 , maxCount=1000,debug=1)
      a=nextFriend(a)
    end
    push!(res,a)
-   if !isnothing(indexin(a,res)[1])
-     steps=indexin(a,res)[1]
-     if debug>0 println("$n ends in a cycle in ",steps," steps which is ", 1+length(res)-steps ," long. Cycle is:", res[steps:end]) end
-   elseif conte==maxCount steps=maxCount
+   steps=indexin(a,res)[1]
+   if steps!=length(res)
+     if debug>=1 &&res[end]!= 1 println("$n ends in $steps steps in a cycle  which is ", length(res)-steps ," long. Cycle is:", res[steps:end]) end
+   else
+     if debug>=1 println("no cycle in $steps=$maxCount steps") end
    #elseif a==0 steps=length(res)
    end
-   if debug>4 println() end
    clingCycle[n]=res
    #if debug>2 println("$n ",length(res), " ", res[max(1,end-4):end]) end
-  return conte,steps,length(res),res
+  return length(res)-steps , steps,conte,res
 end
 
 function amico(n;cyclelength=2, debug=0)

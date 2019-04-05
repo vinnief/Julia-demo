@@ -46,6 +46,7 @@ countClingy(7)
 countClingy(8)
 countClingy(9)
 countClingy(10)
+countClingy(220)
 clingCycle
 res=for i in 2:2000 countClingy(i,upperlevel=100) end
 sumDivisors(3)-3

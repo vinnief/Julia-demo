@@ -203,8 +203,10 @@ end
 primes1=[2,3]; primes2=[2,3];
 addPrime!(5000, method=1, primes=primes1)
 addPrime!(5000, method=2, primes=primes2)
-primes1==primes2
-
+@assert primes1==primes2
+@assert countClingy(3)==(1,2,2,[3,1,1])
+@assert countClingy(3)[1]==1
+@assert countClingy(31)[1]==1
 #===========================
 method 1   1.024183 seconds (104.58 k allocations: 1006.703 MiB, 15.00% gc time)
 method 2   1.265096 seconds (245.81 k allocations: 1.469 GiB, 18.77% gc time)
